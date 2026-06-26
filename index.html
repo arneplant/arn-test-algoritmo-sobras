@@ -159,9 +159,12 @@
             const sobrasGestionadas = Number(pedido.sobrasGestionadas ?? 0)
             const sobrasAGestionar = Number(pedido.sobrasAGestionar ?? 0)
 
-            const necesidades = Math.max(cantidadPendiente + sobrasAGestionar, 0)
+            const necesidades = cantidadPendiente - sobrasAGestionar //Math.max(cantidadPendiente + sobrasAGestionar, 0)
             const factorRiesgo = 1 - configuracion.porcentaje
-            const cantidadFabricandoRaw = factorRiesgo === 0 ? necesidades - stock : (necesidades - stock) / factorRiesgo
+            //const cantidadFabricandoRaw = factorRiesgo === 0 ? necesidades - stock : (necesidades - stock) / factorRiesgo
+            // cantidadFabricandoRaw = cantidad pendiente de este pedido + cantidad pendiente de pedidos anteriores 
+            const cantidadFabricandoRaw = necesidades + pedidosAnteriores.reduce((suma, pedidoAnterior) => suma + pedidoAnterior.necesidades, 0)
+
             const cantidadFabricando = Math.round(cantidadFabricandoRaw)
             const riesgo = cantidadFabricando * configuracion.porcentaje
 
