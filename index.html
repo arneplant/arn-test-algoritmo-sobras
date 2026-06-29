@@ -157,7 +157,9 @@
             const cantidadPendiente = Math.max(cantidadPedido - cantidadTerminada, 0)
             const stock = Number(pedido.stock ?? 0)
             const sobrasGestionadas = Number(pedido.sobrasGestionadas ?? 0)
-            const sobrasAGestionar = Number(pedido.sobrasAGestionar ?? 0)
+            //const sobrasAGestionar = Number(pedido.sobrasAGestionar ?? 0)
+            // para calcular las sobrasAGestionar hay que tomar el stock actual (en el momento del nuevo pedido (stock)), la cantidad pendiente de este pedido (cantidadPendiente) y la cantidad de sobrasgestionar de los pedidos anteriores que tengan sobrasgestionadas = 0 . entonces teniendo el cuenta el stock en este momento, menos la ssobras que van a gestionar los pedidos anteriores me da el stock corregidos porque "gestionar sobras" = "restar del stock". si queda algo de stock hay que ver si da para cubrir la cantidad pendiente, si no da, poner la cantidad que se pueda, si da, ponerlo todo, escribelo con logica condicional, sin max min
+            const sobrasAGestionar = Math.max(Math.min(stock - pedidosAnteriores.reduce((suma, pedidoAnterior) => suma + pedidoAnterior.sobrasAGestionar, 0), cantidadPendiente), 0)
 
             const necesidades = cantidadPendiente - sobrasAGestionar //Math.max(cantidadPendiente + sobrasAGestionar, 0)
             const factorRiesgo = 1 - configuracion.porcentaje
