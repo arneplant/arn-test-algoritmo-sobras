@@ -151,15 +151,19 @@
             return Math.min(minimo, Math.ceil(cantidadAFabricar * limiteMinimo))
         }
 
-        function calcularPedido(configuracion, pedidosAnteriores, pedido) {
+        function calcularPedido(configuracion, pedidosAnteriores, pedido, options = {}) {
             const cantidadPedido = Number(pedido.cantidadPedido)
             const cantidadTerminada = Number(pedido.cantidadTerminada ?? 0)
             const cantidadPendiente = Math.max(cantidadPedido - cantidadTerminada, 0)
             const stock = Number(pedido.stock ?? 0)
             const sobrasGestionadas = Number(pedido.sobrasGestionadas ?? 0)
             //const sobrasAGestionar = Number(pedido.sobrasAGestionar ?? 0)
-            // para calcular las sobrasAGestionar hay que tomar el stock actual (en el momento del nuevo pedido (stock)), la cantidad pendiente de este pedido (cantidadPendiente) y la cantidad de sobrasgestionar de los pedidos anteriores que tengan sobrasgestionadas = 0 . entonces teniendo el cuenta el stock en este momento, menos la ssobras que van a gestionar los pedidos anteriores me da el stock corregidos porque "gestionar sobras" = "restar del stock". si queda algo de stock hay que ver si da para cubrir la cantidad pendiente, si no da, poner la cantidad que se pueda, si da, ponerlo todo, escribelo con logica condicional, sin max min
-            const sobrasAGestionar = Math.max(Math.min(stock - pedidosAnteriores.reduce((suma, pedidoAnterior) => suma + pedidoAnterior.sobrasAGestionar, 0), cantidadPendiente), 0)
+            // para calcular las sobrasAGestionar hay que tomar el stock actual (en el momento del nuevo pedido (stock)), la cantidad pendiente de este pedido (cantidadPendiente) y, si corresponde, la cantidad de sobras que ya gestionan los pedidos anteriores.
+            // Cuando se calcula el pedido final, queremos ignorar totalmente el stock de los pedidos anteriores en curso.
+            const stockCorregido = options.ignoreStockDePedidosAnteriores
+                ? stock
+                : stock - pedidosAnteriores.reduce((suma, pedidoAnterior) => suma + pedidoAnterior.sobrasAGestionar, 0)
+            const sobrasAGestionar = stockCorregido > 0 ? Math.min(stockCorregido, cantidadPendiente) : 0
 
             const necesidades = cantidadPedido - sobrasAGestionar
 
@@ -251,7 +255,9 @@
                 sobrasAGestionar: nuevoStock
             }
 
-            const resultadoNuevoPedido = calcularPedido(configuracion, pedidosParaCalcularNuevo, nuevoPedido)
+            const resultadoNuevoPedido = calcularPedido(configuracion, pedidosParaCalcularNuevo, nuevoPedido, {
+                ignoreStockDePedidosAnteriores: true
+            })
 
             return {
                 configuracion,
@@ -501,11 +507,10 @@
             ui.limiteMinimo.value = 100
             ui.esMaterialCliente.checked = false
             ui.nuevoId.value = 'nuevo'
-            ui.nuevoCantidadPedido.value = 50
-            ui.nuevoStock.value = 0
+            ui.nuevoCantidadPedido.value = 5000
+            ui.nuevoStock.value = 8
             state.pedidosEnCurso = [
-                { id: 'A', cantidadPedido: 200, cantidadTerminada: 0, stock: 120, sobrasGestionadas: 0, sobrasAGestionar: 5 },
-                { id: 'B', cantidadPedido: 40, cantidadTerminada: 10, stock: 90, sobrasGestionadas: 0, sobrasAGestionar: 8 }
+                { id: 'A', cantidadPedido: 3600, cantidadTerminada: 0, stock: 8, sobrasGestionadas: 0, sobrasAGestionar: 0 },
             ]
             renderPedidos()
             ui.results.innerHTML = ''
