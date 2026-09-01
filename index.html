@@ -161,7 +161,7 @@
             // para calcular las sobrasAGestionar hay que tomar el stock actual (en el momento del nuevo pedido (stock)), la cantidad pendiente de este pedido (cantidadPendiente) y, si corresponde, la cantidad de sobras que ya gestionan los pedidos anteriores.
             // Cuando se calcula el pedido final, queremos ignorar totalmente el stock de los pedidos anteriores en curso.
             const stockCorregido = options.ignoreStockDePedidosAnteriores
-                ? stock
+                ? stock - pedidosAnteriores.reduce((suma, pedidoAnterior) => suma + pedidoAnterior.sobrasAGestionar, 0)
                 : stock - pedidosAnteriores.reduce((suma, pedidoAnterior) => suma + pedidoAnterior.sobrasAGestionar, 0)
             const sobrasAGestionar = stockCorregido > 0 ? Math.min(stockCorregido, cantidadPendiente) : 0
 
@@ -507,10 +507,12 @@
             ui.limiteMinimo.value = 100
             ui.esMaterialCliente.checked = false
             ui.nuevoId.value = 'nuevo'
-            ui.nuevoCantidadPedido.value = 5000
-            ui.nuevoStock.value = 8
+            ui.nuevoCantidadPedido.value = 100
+            ui.nuevoStock.value = 100
             state.pedidosEnCurso = [
-                { id: 'A', cantidadPedido: 3600, cantidadTerminada: 0, stock: 8, sobrasGestionadas: 0, sobrasAGestionar: 0 },
+                { id: 'A', cantidadPedido: 1000, cantidadTerminada: 0, stock: 100, sobrasGestionadas: 100, sobrasAGestionar: 0 },
+                { id: 'B', cantidadPedido: 1000, cantidadTerminada: 0, stock: 100, sobrasGestionadas: 0, sobrasAGestionar: 100 },
+                { id: 'C', cantidadPedido: 1000, cantidadTerminada: 0, stock: 100, sobrasGestionadas: 0, sobrasAGestionar: 100 },
             ]
             renderPedidos()
             ui.results.innerHTML = ''
